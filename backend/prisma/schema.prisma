@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  role         Role
+  firstName    String
+  lastName     String
+  phone        String?
+  isActive     Boolean   @default(true)
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  devices       Device[]
+  student       Student?
+  teacher       Teacher?
+  parentStudents Student[] @relation("ParentStudents")
+  notifications Notification[]
+  createdTransactions FeeTransaction[] @relation("TransactionCreator")
+
+  @@index([email])
+  @@index([role])
+}
+
+model Device {
+  id         String    @id @default(uuid())
+  userId     String
+  deviceId   String
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+  verifiedBy String?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+  @@index([isVerified])
+}
+
+model Student {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  parentId       String?
+  classId        String?
+  studentNumber  String    @unique
+  enrollmentDate DateTime  @default(now())
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent     User?        @relation("ParentStudents", fields: [parentId], references: [id])
+  class      Class?       @relation(fields: [classId], references: [id])
+  feeAccount FeeAccount?
+  grades     Grade[]
+  attendance Attendance[]
+
+  @@index([userId])
+  @@index([parentId])
+  @@index([classId])
+}
+
+model Class {
+  id           String   @id @default(uuid())
+  name         String
+  grade        String
+  teacherId    String?
+  academicYear String
+  schedule     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  teacher    Teacher?     @relation(fields: [teacherId], references: [id])
+  students   Student[]
+  grades     Grade[]
+  attendance Attendance[]
+  timetable  Timetable[]
+
+  @@index([teacherId])
+  @@index([academicYear])
+}
+
+model Teacher {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  employeeNumber String   @unique
+  subjects       String[]
+  createdAt      DateTime @default(now())
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classes    Class[]
+  grades     Grade[]
+  attendance Attendance[]
+
+  @@index([userId])
+}
+
+model FeeAccount {
+  id        String   @id @default(uuid())
+  studentId String   @unique
+  balance   Decimal  @default(0) @db.Decimal(10, 2)
+  currency  String   @default("RWF")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student      Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  transactions FeeTransaction[]
+
+  @@index([studentId])
+}
+
+model FeeTransaction {
+  id           String            @id @default(uuid())
+  feeAccountId String
+  type         TransactionType
+  amount       Decimal           @db.Decimal(10, 2)
+  status       TransactionStatus @default(PENDING)
+  reference    String            @unique
+  description  String?
+  createdBy    String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  feeAccount FeeAccount @relation(fields: [feeAccountId], references: [id], onDelete: Cascade)
+  creator    User       @relation("TransactionCreator", fields: [createdBy], references: [id])
+
+  @@index([feeAccountId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Grade {
+  id           String   @id @default(uuid())
+  studentId    String
+  classId      String
+  subject      String
+  score        Decimal  @db.Decimal(5, 2)
+  maxScore     Decimal  @db.Decimal(5, 2)
+  term         String
+  academicYear String
+  recordedBy   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [recordedBy], references: [id])
+
+  @@index([studentId])
+  @@index([classId])
+  @@index([academicYear, term])
+}
+
+model Attendance {
+  id        String           @id @default(uuid())
+  studentId String
+  classId   String
+  date      DateTime
+  status    AttendanceStatus
+  markedBy  String
+  notes     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [markedBy], references: [id])
+
+  @@unique([studentId, classId, date])
+  @@index([studentId])
+  @@index([classId])
+  @@index([date])
+}
+
+model Timetable {
+  id        String   @id @default(uuid())
+  classId   String
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  subject   String
+  room      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([classId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  action      String
+  entityType  String
+  entityId    String?
+  ipAddress   String?
+  beforeValue Json?
+  afterValue  Json?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
