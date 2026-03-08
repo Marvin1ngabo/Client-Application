@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply font-body bg-[#F8FAFC] text-gray-900;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-heading;
+}
+
+.card {
+  @apply bg-white rounded-card shadow-card;
+}
+
+.btn {
+  @apply h-10 px-4 rounded-button font-medium transition-colors;
+}
+
+.btn-primary {
+  @apply bg-primary text-white hover:bg-navy-600;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-white hover:bg-blue-600;
+}
+
+.btn-success {
+  @apply bg-success text-white hover:bg-emerald-600;
+}
+
+.btn-danger {
+  @apply bg-danger text-white hover:bg-red-600;
+}
