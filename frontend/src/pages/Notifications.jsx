@@ -16,7 +16,7 @@ export default function Notifications() {
   const fetchNotifications = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('/api/notifications')
+      const response = await axios.get('/notifications')
       setNotifications(response.data.data || [])
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to fetch notifications')
@@ -27,7 +27,7 @@ export default function Notifications() {
 
   const markAsRead = async (id) => {
     try {
-      await axios.patch(`/api/notifications/${id}/read`)
+      await axios.patch(`/notifications/${id}/read`)
       setNotifications(notifications.map(n => 
         n.id === id ? { ...n, isRead: true } : n
       ))

@@ -23,6 +23,14 @@ export default function Login() {
         deviceId,
       })
 
+      // Client app is for STUDENT, PARENT, TEACHER only (not ADMIN)
+      if (data.data.user.role === 'ADMIN') {
+        toast.error('Access denied. Administrators should use the admin portal.')
+        toast.info('Please use the admin portal at http://localhost:3001')
+        setLoading(false)
+        return
+      }
+
       setAuth(data.data.user, data.data.accessToken, data.data.deviceVerified)
       toast.success('Login successful!')
 

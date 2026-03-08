@@ -5,7 +5,11 @@ const { successResponse, errorResponse } = require('../utils/response');
 class FeeController {
   async getBalance(req, res, next) {
     try {
-      const balance = await feeService.getBalance(req.user.id);
+      const balance = await feeService.getBalance(
+        req.user.id,
+        req.user.role,
+        req.user.id
+      );
       return successResponse(res, balance);
     } catch (error) {
       next(error);
@@ -15,7 +19,12 @@ class FeeController {
   async getHistory(req, res, next) {
     try {
       const limit = parseInt(req.query.limit) || 50;
-      const history = await feeService.getTransactionHistory(req.user.id, limit);
+      const history = await feeService.getTransactionHistory(
+        req.user.id,
+        req.user.role,
+        req.user.id,
+        limit
+      );
       return successResponse(res, history);
     } catch (error) {
       next(error);
@@ -35,7 +44,14 @@ class FeeController {
       }
 
       const { amount, reference, description } = req.body;
-      const transaction = await feeService.deposit(req.user.id, amount, reference, description);
+      const transaction = await feeService.deposit(
+        req.user.id,
+        amount,
+        reference,
+        description,
+        req.user.role,
+        req.user.id
+      );
       return successResponse(res, transaction, 'Deposit successful', 201);
     } catch (error) {
       next(error);
@@ -55,7 +71,13 @@ class FeeController {
       }
 
       const { amount, description } = req.body;
-      const transaction = await feeService.withdraw(req.user.id, amount, description);
+      const transaction = await feeService.withdraw(
+        req.user.id,
+        amount,
+        description,
+        req.user.role,
+        req.user.id
+      );
       return successResponse(res, transaction, 'Withdrawal request submitted', 201);
     } catch (error) {
       next(error);
@@ -65,7 +87,8 @@ class FeeController {
   async approveTransaction(req, res, next) {
     try {
       const { id } = req.params;
-      const transaction = await feeService.approveTransaction(id, req.user.id);
+      const { adminNote } = req.body;
+      const transaction = await feeService.approveTransaction(id, req.user.id, adminNote);
       return successResponse(res, transaction, 'Transaction approved');
     } catch (error) {
       next(error);
@@ -75,7 +98,13 @@ class FeeController {
   async rejectTransaction(req, res, next) {
     try {
       const { id } = req.params;
-      const transaction = await feeService.rejectTransaction(id);
+      const { rejectionReason } = req.body;
+      
+      if (!rejectionReason) {
+        return errorResponse(res, 'Rejection reason is required', 400);
+      }
+      
+      const transaction = await feeService.rejectTransaction(id, req.user.id, rejectionReason);
       return successResponse(res, transaction, 'Transaction rejected');
     } catch (error) {
       next(error);

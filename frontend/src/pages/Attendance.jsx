@@ -16,7 +16,7 @@ export default function Attendance() {
   const fetchAttendance = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('/api/attendance/my')
+      const response = await axios.get('/attendance/my')
       setAttendance(response.data.data || [])
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to fetch attendance')

@@ -86,29 +86,7 @@ async function main() {
     },
   });
 
-  const student = await prisma.student.upsert({
-    where: { userId: studentUser.id },
-    update: {},
-    create: {
-      userId: studentUser.id,
-      studentNumber: 'STU001',
-    },
-  });
-
-  // Create fee account for student
-  await prisma.feeAccount.upsert({
-    where: { studentId: student.id },
-    update: {},
-    create: {
-      studentId: student.id,
-      balance: 10000,
-      currency: 'RWF',
-    },
-  });
-
-  console.log('✅ Student user created:', studentUser.email);
-
-  // Create Parent User
+  // Create Parent User FIRST (before student)
   const parentSalt = generateSalt(16);
   const parentPasswordHash = hashPassword('Parent123!', parentSalt);
 
@@ -127,6 +105,33 @@ async function main() {
   });
 
   console.log('✅ Parent user created:', parentUser.email);
+
+  // Now create student and link to parent
+  const student = await prisma.student.upsert({
+    where: { userId: studentUser.id },
+    update: {
+      parentId: parentUser.id, // Link to parent
+    },
+    create: {
+      userId: studentUser.id,
+      studentNumber: 'STU001',
+      parentId: parentUser.id, // Link to parent
+    },
+  });
+
+  // Create fee account for student
+  await prisma.feeAccount.upsert({
+    where: { studentId: student.id },
+    update: {},
+    create: {
+      studentId: student.id,
+      balance: 10000,
+      currency: 'RWF',
+    },
+  });
+
+  console.log('✅ Student user created:', studentUser.email);
+  console.log('✅ Student linked to parent');
 
   console.log('\n🎉 Seeding completed!\n');
   console.log('📝 Default Credentials:');

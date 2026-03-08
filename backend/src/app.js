@@ -8,6 +8,7 @@ const setupSwagger = require('./config/swagger');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
 const feeRoutes = require('./routes/feeRoutes');
 const gradeRoutes = require('./routes/gradeRoutes');
@@ -47,6 +48,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/fees', feeRoutes);
 app.use('/api/grades', gradeRoutes);

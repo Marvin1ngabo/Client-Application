@@ -14,6 +14,13 @@ import Layout from './components/Layout'
 function App() {
   const { user, isAuthenticated } = useAuthStore()
 
+  // Client app is for STUDENT, PARENT, TEACHER only (not ADMIN)
+  // Redirect admins to admin app
+  if (isAuthenticated && user && user.role === 'ADMIN') {
+    window.location.href = 'http://localhost:3001'
+    return null
+  }
+
   return (
     <Routes>
       <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />

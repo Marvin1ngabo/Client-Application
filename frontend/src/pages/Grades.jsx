@@ -16,7 +16,7 @@ export default function Grades() {
   const fetchGrades = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('/api/grades/my')
+      const response = await axios.get('/grades/my')
       setGrades(response.data.data || [])
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to fetch grades')
