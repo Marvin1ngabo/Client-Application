@@ -14,9 +14,9 @@ import Layout from './components/Layout'
 function App() {
   const { user, isAuthenticated } = useAuthStore()
 
-  // Client app is for STUDENT, PARENT, TEACHER only (not ADMIN)
-  // Redirect admins to admin app
-  if (isAuthenticated && user && user.role === 'ADMIN') {
+  // Client app is for STUDENT and PARENT only (not TEACHER or ADMIN)
+  // Redirect teachers and admins to staff portal
+  if (isAuthenticated && user && (user.role === 'TEACHER' || user.role === 'ADMIN')) {
     window.location.href = 'http://localhost:3001'
     return null
   }
