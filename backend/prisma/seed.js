@@ -111,6 +111,7 @@ async function main() {
     where: { userId: studentUser.id },
     update: {
       parentId: parentUser.id, // Link to parent
+      studentNumber: 'STU001',
     },
     create: {
       userId: studentUser.id,
@@ -119,18 +120,20 @@ async function main() {
     },
   });
 
-  // Create fee account for student
-  await prisma.feeAccount.upsert({
+  console.log('✅ Student user created:', studentUser.email);
+  console.log('✅ Student record created with ID:', student.id);
+
+  // Create fee account for student (balance is calculated from transactions, not stored)
+  const feeAccount = await prisma.feeAccount.upsert({
     where: { studentId: student.id },
     update: {},
     create: {
       studentId: student.id,
-      balance: 10000,
       currency: 'RWF',
     },
   });
 
-  console.log('✅ Student user created:', studentUser.email);
+  console.log('✅ Fee account created for student');
   console.log('✅ Student linked to parent');
 
   console.log('\n🎉 Seeding completed!\n');

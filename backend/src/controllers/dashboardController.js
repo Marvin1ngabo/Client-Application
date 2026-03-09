@@ -62,6 +62,7 @@ class DashboardController {
             : 0;
 
           stats = {
+            studentNumber: student.studentNumber,
             balance: Number(balance),
             className: student.class?.name || 'Not assigned',
             attendanceRate: attendanceRecords.length > 0 

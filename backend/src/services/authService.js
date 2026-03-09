@@ -16,6 +16,27 @@ class AuthService {
       throw new AppError('Email already registered', 400);
     }
 
+    // If registering as PARENT, verify student exists by student number
+    let studentToLink = null;
+    if (data.role === 'PARENT' && data.studentId) {
+      studentToLink = await prisma.student.findUnique({
+        where: { studentNumber: data.studentId },
+        include: { 
+          user: true,
+          parent: true,
+        },
+      });
+
+      if (!studentToLink) {
+        throw new AppError('Student number not found. Please verify the student is registered in the system.', 404);
+      }
+
+      // Check if student already has a parent linked
+      if (studentToLink.parentId) {
+        throw new AppError(`This student is already linked to ${studentToLink.parent.firstName} ${studentToLink.parent.lastName}.`, 400);
+      }
+    }
+
     // Hash password
     const salt = generateSalt(parseInt(process.env.SALT_ROUNDS) || 16);
     const passwordHash = hashPassword(data.password, salt);
@@ -40,6 +61,30 @@ class AuthService {
         createdAt: true,
       },
     });
+
+    // If parent, link to student
+    if (data.role === 'PARENT' && studentToLink) {
+      // Link student to this parent user
+      await prisma.student.update({
+        where: { id: studentToLink.id },
+        data: { parentId: user.id },
+      });
+    }
+
+    // If student, create Student record with auto-generated student number
+    if (data.role === 'STUDENT') {
+      // Generate student number (e.g., STU-2026-0001)
+      const year = new Date().getFullYear();
+      const count = await prisma.student.count();
+      const studentNumber = `STU-${year}-${String(count + 1).padStart(4, '0')}`;
+
+      await prisma.student.create({
+        data: {
+          userId: user.id,
+          studentNumber,
+        },
+      });
+    }
 
     return user;
   }

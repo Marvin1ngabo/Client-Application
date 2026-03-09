@@ -44,7 +44,30 @@ export default function Dashboard() {
           <h1 className="text-3xl font-heading text-primary mb-2">
             {greeting()}, {user?.firstName}! 🎓
           </h1>
-          <p className="text-gray-600">Class: {stats?.className || 'Not assigned'}</p>
+          <div className="flex items-center gap-4">
+            <p className="text-gray-600">Class: {stats?.className || 'Not assigned'}</p>
+            {stats?.studentNumber && (
+              <div className="flex items-center gap-2 bg-navy-100 px-4 py-2 rounded-lg">
+                <span className="text-sm font-medium text-navy-700">Student Number:</span>
+                <span className="text-lg font-bold text-navy-900">{stats.studentNumber}</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(stats.studentNumber);
+                    alert('Student number copied to clipboard!');
+                  }}
+                  className="ml-2 text-navy-600 hover:text-navy-800"
+                  title="Copy student number"
+                >
+                  📋
+                </button>
+              </div>
+            )}
+          </div>
+          {stats?.studentNumber && (
+            <p className="text-xs text-gray-500 mt-2">
+              💡 Share your student number with your parent so they can link their account
+            </p>
+          )}
         </div>
 
         {/* Low Balance Alert */}
@@ -67,6 +90,22 @@ export default function Dashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="card p-6 bg-gradient-to-br from-navy-600 to-navy-700 text-white">
+            <h3 className="text-sm font-medium text-navy-200 mb-2">Your Student Number</h3>
+            <p className="text-2xl font-bold mb-2">{stats?.studentNumber || 'N/A'}</p>
+            <button
+              onClick={() => {
+                if (stats?.studentNumber) {
+                  navigator.clipboard.writeText(stats.studentNumber);
+                  alert('Student number copied!');
+                }
+              }}
+              className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded"
+            >
+              📋 Copy Number
+            </button>
+          </div>
+
           <div className="card p-6">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Fee Balance</h3>
             <p className="text-3xl font-bold text-primary">

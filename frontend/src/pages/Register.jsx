@@ -11,6 +11,7 @@ export default function Register() {
     lastName: '',
     phone: '',
     role: 'PARENT',
+    studentId: '', // For parent registration
   })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -109,6 +110,25 @@ export default function Register() {
               <option value="STUDENT">Student</option>
             </select>
           </div>
+
+          {formData.role === 'PARENT' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Student Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.studentId}
+                onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                placeholder="e.g., STU-2026-0001"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+              />
+              <p className="text-xs text-gray-600 mt-2">
+                💡 Enter your child's student number to link your account. The student must already be registered in the system. Ask the school admin for the student number.
+              </p>
+            </div>
+          )}
 
           <button
             type="submit"
